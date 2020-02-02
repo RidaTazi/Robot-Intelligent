@@ -1,0 +1,493 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL.h>
+#include <SDL_timer.h>
+#include <SDL_image.h>
+#include "fonctions.h"
+#define hei 750
+#define wid 750
+#define SPEED 500
+#define N 10
+#define widp 350
+#define widb 250
+#define yesx 80
+#define nox 420
+#define yesy 329
+
+
+int main(void){
+//initialisation SDL
+
+								int reponse = 1;
+								int rejouer;
+
+								if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER)!=0) {
+																printf("error : %s\n",SDL_GetError());
+																return 1;
+								}
+//creation fenetre
+								SDL_Window *win = SDL_CreateWindow("Robot Intelligent",1100,SDL_WINDOWPOS_CENTERED,wid,hei,0);
+								if (!win) {
+																printf("error : %s",SDL_GetError());
+																SDL_Quit();
+																return 1;
+								}
+
+//initialisation renderer
+								Uint32 render_flags = SDL_RENDERER_ACCELERATED;
+								SDL_Renderer* rend = SDL_CreateRenderer(win,-1,render_flags);
+								if (!rend) {
+																printf("error : %s",SDL_GetError());
+																SDL_DestroyWindow(win);
+																SDL_Quit();
+																return 1;
+								}
+//importation images
+								SDL_Surface* imgCircle = IMG_Load("resources/cercle.png");
+								if (!imgCircle) {
+																printf("error : %s",SDL_GetError());
+																SDL_DestroyRenderer(rend);
+																SDL_DestroyWindow(win);
+																SDL_Quit();
+																return 1;
+								}
+								SDL_Surface* imgRobot = IMG_Load("resources/robot1.png");
+								if (!imgRobot) {
+																printf("error : %s",SDL_GetError());
+																SDL_DestroyRenderer(rend);
+																SDL_DestroyWindow(win);
+																SDL_Quit();
+																return 1;
+								}
+								SDL_Surface* imgButton = IMG_Load("resources/button.png");
+								SDL_Surface* imgRect = IMG_Load("resources/rect.png");
+								SDL_Surface* imgBack = IMG_Load("resources/back.png");
+								SDL_Surface* imgTriangle = IMG_Load("resources/triangle.png");
+								SDL_Surface* imgCarre = IMG_Load("resources/carre.png");
+								SDL_Surface* imgMenu = IMG_Load("resources/menu.png");
+								SDL_Surface* imgYes= IMG_Load("resources/buttonyes.png");
+								SDL_Surface* imgNo = IMG_Load("resources/buttono.png");
+								SDL_Surface* imgRestart = IMG_Load("resources/restart.png");
+
+								SDL_Surface* imgN0 = IMG_Load("resources/numbers/0.jpg");
+							    SDL_Surface* imgN1 = IMG_Load("resources/numbers/1.jpg");
+							    SDL_Surface* imgN2 = IMG_Load("resources/numbers/2.jpg");
+							    SDL_Surface* imgN3 = IMG_Load("resources/numbers/3.jpg");
+							    SDL_Surface* imgN4 = IMG_Load("resources/numbers/4.jpg");
+							    SDL_Surface* imgN5 = IMG_Load("resources/numbers/5.jpg");
+							    SDL_Surface* imgN6 = IMG_Load("resources/numbers/6.jpg");
+							    SDL_Surface* imgN7 = IMG_Load("resources/numbers/7.jpg");
+							    SDL_Surface* imgN8 = IMG_Load("resources/numbers/8.jpg");
+							    SDL_Surface* imgN9 = IMG_Load("resources/numbers/9.jpg");
+							
+
+//creation texture des images
+								SDL_Texture *texButton = SDL_CreateTextureFromSurface(rend,imgButton);
+								SDL_FreeSurface(imgButton);
+								SDL_Texture *texCircle = SDL_CreateTextureFromSurface(rend,imgCircle);
+								SDL_FreeSurface(imgCircle);
+								SDL_Texture *texRobot = SDL_CreateTextureFromSurface(rend,imgRobot);
+								SDL_FreeSurface(imgRobot);
+								SDL_Texture *texRect = SDL_CreateTextureFromSurface(rend,imgRect);
+								SDL_FreeSurface(imgRect);
+								SDL_Texture *texCarre = SDL_CreateTextureFromSurface(rend,imgCarre);
+								SDL_FreeSurface(imgCarre);
+								SDL_Texture *texBack = SDL_CreateTextureFromSurface(rend,imgBack);
+								SDL_FreeSurface(imgBack);
+								SDL_Texture *texTriangle= SDL_CreateTextureFromSurface(rend,imgTriangle);
+								SDL_FreeSurface(imgTriangle);
+								SDL_Texture *texMenu= SDL_CreateTextureFromSurface(rend,imgMenu);
+								SDL_FreeSurface(imgMenu);
+								SDL_Texture *texCOMPTEUR= SDL_CreateTextureFromSurface(rend,imgN0);
+								SDL_FreeSurface(imgN0);
+								SDL_Texture *texYes = SDL_CreateTextureFromSurface(rend,imgYes);
+								SDL_FreeSurface(imgYes);
+								SDL_Texture *texNo = SDL_CreateTextureFromSurface(rend,imgNo);
+								SDL_FreeSurface(imgNo);
+								SDL_Texture *texRestart = SDL_CreateTextureFromSurface(rend,imgRestart);
+								SDL_FreeSurface(imgRestart);
+								
+								SDL_Event event2;
+								SDL_Event event;
+								SDL_Event event3;
+								
+ 
+//creation des rectangles
+								SDL_Rect button;
+								SDL_Rect menu;
+								SDL_Rect back;
+								SDL_Rect robot;
+								SDL_Rect compteur;
+								SDL_Rect rect[N];
+								SDL_Rect Yes;
+								SDL_Rect No;
+								SDL_Rect Restart;
+//stores the texture image in the appropriate rectangle
+								SDL_QueryTexture(texButton,NULL,NULL,&button.w,&button.h);
+								SDL_QueryTexture(texMenu,NULL,NULL,&menu.w,&menu.h);
+								SDL_QueryTexture(texRobot,NULL,NULL,&robot.w,&robot.h);
+								SDL_QueryTexture(texBack,NULL,NULL,&back.w,&back.h);
+								SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+								SDL_QueryTexture(texYes,NULL,NULL,&Yes.w,&Yes.h);
+								SDL_QueryTexture(texNo,NULL,NULL,&No.w,&No.h);
+								SDL_QueryTexture(texRestart,NULL,NULL,&Restart.w,&Restart.h);
+
+//creation variable forme
+								typedef enum
+								{
+																RECT,CIRCLE,TRIANGLE,CARRE
+								}shape;
+
+								int TabForm[N];
+								SDL_Point points[50];
+
+								while(reponse == 1) {
+																imgButton = IMG_Load("resources/button.png");
+																imgRect = IMG_Load("resources/rect.png");
+																imgBack = IMG_Load("resources/back.png");
+																imgTriangle = IMG_Load("resources/triangle.png");
+																imgCarre = IMG_Load("resources/carre.png");
+																imgMenu = IMG_Load("resources/menu.png");
+																imgYes= IMG_Load("resources/buttonyes.png");
+				   												imgNo = IMG_Load("resources/buttono.png");
+				   												imgRestart = IMG_Load("resources/restart.png");
+
+																imgN0 = IMG_Load("resources/numbers/0.jpg");
+				   												imgN1 = IMG_Load("resources/numbers/1.jpg");
+				   							   					imgN2 = IMG_Load("resources/numbers/2.jpg");
+				   							   					imgN3 = IMG_Load("resources/numbers/3.jpg");
+				   							    				imgN4 = IMG_Load("resources/numbers/4.jpg");
+				   							    				imgN5 = IMG_Load("resources/numbers/5.jpg");
+				   							    			 	imgN6 = IMG_Load("resources/numbers/6.jpg");
+				   							     				imgN7 = IMG_Load("resources/numbers/7.jpg");
+				   							    			 	imgN8 = IMG_Load("resources/numbers/8.jpg");
+				   							    				imgN9 = IMG_Load("resources/numbers/9.jpg");
+
+																//texCOMPTEUR= SDL_CreateTextureFromSurface(rend,imgN[0]);
+																//SDL_FreeSurface(imgN[0]);
+
+																SDL_QueryTexture(texButton,NULL,NULL,&button.w,&button.h);
+																SDL_QueryTexture(texMenu,NULL,NULL,&menu.w,&menu.h);
+																SDL_QueryTexture(texRobot,NULL,NULL,&robot.w,&robot.h);
+																SDL_QueryTexture(texBack,NULL,NULL,&back.w,&back.h);
+																SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																SDL_QueryTexture(texYes,NULL,NULL,&Yes.w,&Yes.h);
+																SDL_QueryTexture(texNo,NULL,NULL,&No.w,&No.h);
+																SDL_QueryTexture(texRestart,NULL,NULL,&Restart.w,&Restart.h);
+																//generation de formes aleatoire
+																srand(time(NULL));
+																for (int i=0; i<N; i++) {
+																								TabForm[i]=(rand() % 4);
+																}
+
+//initialisation variable
+
+																points[0].x=wid/N/2; points[0].y=5*hei/N/2;
+																int x_vel=0,y_vel=0,m_vel=0,m_y=0;
+																float x=0;
+																float y=hei/2-hei/(2*N);
+																int bb=0;
+																int k;
+																int z=1;
+																int a=SPEED;
+																int close = 0;
+																int P[N]={0};
+																int cc=0;
+																int dd=1;
+																int rr=0;
+																int ch=0;
+
+//coordonne et taille des rectangle
+																compteur.w = wid/N/2;
+																compteur.h = hei/N/2;
+																compteur.x = wid - compteur.w;
+																compteur.y = 0;
+																robot.w=wid/N;
+																robot.h=wid/N;
+																menu.x=0;
+																menu.y=0;
+																menu.w=wid;
+																menu.h=hei;
+																Restart.x=0;
+																Restart.y=0;
+																Restart.w=wid;
+																Restart.h=hei;
+																back.x=0;
+																back.y=0;
+																button.x=230;
+																button.y=329;
+																button.w=301;
+																button.h=301;
+																No.x=nox;
+																No.y=yesy;
+																No.w=widb;
+																No.h=widb;
+																Yes.x=yesx;
+																Yes.y=yesy;
+																Yes.w=widb;
+																Yes.h=widb;
+																rejouer = 0;
+																
+																
+
+
+																
+																storeShapes(TabForm,texCircle,texRect,texTriangle, texCarre,rect); // stores shapes in textures
+																SDL_RenderCopy(rend, texMenu, NULL, &menu);
+																SDL_RenderCopy(rend, texButton, NULL, &button);
+																SDL_RenderPresent(rend);
+
+																//menu
+															
+																Menu(TabForm,&close,&reponse,&rejouer);
+
+																int TabCopie[N];
+																
+																
+																
+																for (int i=0; i<N; i++) {
+																								TabCopie[i]=TabForm[i];
+																}
+																// game looooop
+																dd=1;
+																while (!close) {
+
+																								while(SDL_PollEvent(&event))
+																								{
+																																if(event.type == SDL_QUIT)
+																																								close= 1;
+																								}
+
+
+																								k=(int)((robot.x)*N)/wid; //colonne actuelle du robot
+																								Move(&y,&y_vel,&z); // move robot to zone1 ou 2
+
+																								if ( verifier(TabForm,k) && y==2*hei/N && TabCopie[k] != -1 ) { //si un cercle
+																																printf("CERCLE DETECTE\n");
+																																y=2*hei/N+0.1;
+																																cc++;
+																																z=2;
+																																P[k]=1;
+																																if(cc<10){
+																																switch(cc){
+																														         case 1 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN1);
+																														             SDL_FreeSurface(imgN1);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 2 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN2);
+																														             SDL_FreeSurface(imgN2);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 3 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN3);
+																														             SDL_FreeSurface(imgN3);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 4 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN4);
+																														             SDL_FreeSurface(imgN4);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 5 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN5);
+																														             SDL_FreeSurface(imgN5);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 6 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN6);
+																														             SDL_FreeSurface(imgN6);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 7 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN7);
+																														             SDL_FreeSurface(imgN7);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 8 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN8);
+																														             SDL_FreeSurface(imgN8);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         case 9 :
+																														             texCOMPTEUR = SDL_CreateTextureFromSurface(rend,imgN9);
+																														             SDL_FreeSurface(imgN9);
+																														             SDL_QueryTexture(texCOMPTEUR,NULL,NULL,&compteur.w,&compteur.h);
+																														             break;
+																														         }
+																																compteur.w = wid/N/2;
+																																compteur.h = hei/N/2;
+																																compteur.x = wid - compteur.w;
+																																compteur.y = 0;
+//store points
+																																storePoints(points,&bb,&rr,1);
+																																TabCopie[k] = -1;
+
+																																SDL_Delay(500);
+																																printf("MOVING...\n");
+																								}
+																								}
+																								else if (y<=2*wid/N ) {
+																																if (x<wid -wid/N)
+																																								x+=wid/N;
+
+																																if (TabCopie[k]!=-1) {
+																																								printf("PAS DE CERCLE DETECTE\n");
+//store points
+																																								storePoints(points,&bb,&rr,0);
+
+																																}
+																																if (k == 9) {
+																																								z = 0;
+																																}
+																																TabCopie[k]=-1;
+																																SDL_Delay(500);
+																								}
+
+//mouvements des objets
+																								moveObject(rect,P,k,&z,&x);
+
+//les vitesses
+																								x+=x_vel/60;
+																								y+=y_vel/60;
+																								robot.x=(int)x;
+																								robot.y=(int)y;
+																								m_y+=m_vel/60;
+																								menu.y+=(int)m_y;
+																								button.y+=m_vel;
+																								//button.y=(int)m_y;
+
+
+																								SDL_SetRenderDrawColor(rend, 255, 255, 255, SDL_ALPHA_OPAQUE);
+//apparaitre le contenu de la fenetre
+																								SDL_RenderClear(rend);
+																								SDL_RenderCopy(rend, texBack, NULL, &back);
+																								SDL_RenderCopy(rend, texRobot, NULL, &robot);
+																								SDL_RenderCopy(rend, texCOMPTEUR, NULL, &compteur);
+																								SDL_SetRenderDrawColor(rend, 0, 0, 0, SDL_ALPHA_OPAQUE);
+																								showShapes(TabForm,rend,texCircle,texRect,texTriangle, texCarre,rect);
+
+//dessiner le chemin
+																								draw(rend,rr,points,k,z,TabForm);
+
+																								SDL_RenderCopy(rend, texMenu, NULL, &menu);
+																								SDL_RenderCopy(rend, texButton, NULL, &button);
+																								SDL_RenderPresent(rend);
+
+
+//boutton start
+																								while(dd==1)
+																								{
+																												while(SDL_PollEvent(&event2)){
+																												if (event2.button.x>=230 && event2.button.x<=531 && event2.button.y>=434 && event2.button.y<= 535)
+																																{
+																																								button.w = 400;
+																																								button.h = 400;
+																																								button.x = 180;
+																																								button.y = 279;
+																																								SDL_RenderClear(rend);
+																																								SDL_RenderCopy(rend, texMenu, NULL, &menu);
+																																								SDL_RenderCopy(rend, texButton, NULL, &button);
+																																								SDL_RenderPresent(rend);
+
+																																								if (event2.type==SDL_MOUSEBUTTONDOWN) {
+																																																m_vel = SPEED;
+																																																dd=0;
+																																								}
+																																}
+
+																																else {
+																																								button.w = 301;
+																																								button.h = 301;
+																																								button.x = 230;
+																																								button.y = 329;
+
+																																								SDL_RenderClear(rend);
+																																								SDL_RenderCopy(rend, texMenu, NULL, &menu);
+																																								SDL_RenderCopy(rend, texButton, NULL, &button);
+																																								SDL_RenderPresent(rend);
+																																}
+																								}
+																								}
+																								if (z==0) {
+																																close = 1;
+																								}
+
+																								SDL_Delay(1000/60);
+																}
+																
+																SDL_Delay(3000);
+																
+																SDL_RenderCopy(rend, texRestart, NULL, &Restart);
+																SDL_RenderCopy(rend, texNo, NULL, &No);
+																SDL_RenderCopy(rend, texYes, NULL, &Yes);
+																SDL_RenderPresent(rend);
+																
+																
+															   
+															    
+															    
+																while(!rejouer)
+																{
+																				while(SDL_PollEvent(&event3)){
+																				if (event3.button.x>=yesx && event3.button.x<=yesx+widb && event3.button.y>=yesy+0.35*widb && event3.button.y<= yesy + 0.65*widb)
+																								{
+																																Yes.w = widp;
+																																Yes.h = widp;
+																																Yes.x = yesx-(widp-widb)/2;
+																																Yes.y = yesy-(widp-widb)/2;
+																																SDL_RenderClear(rend);
+																																SDL_RenderCopy(rend, texRestart, NULL, &Restart);
+																																SDL_RenderCopy(rend, texYes, NULL, &Yes);
+																																SDL_RenderCopy(rend, texNo, NULL, &No);
+																																SDL_RenderPresent(rend);
+
+																																if (event3.type==SDL_MOUSEBUTTONDOWN) {
+																																								SDL_RenderClear(rend);
+																																								rejouer = 1;
+																																								reponse = 1;
+																																}
+																								}
+																								
+																				else if (event3.button.x>=nox && event3.button.x<=nox+widb && event3.button.y>=yesy+0.35*widb && event3.button.y<=0.65*widb+yesy)
+																								{
+																																No.w = widp;
+																																No.h = widp;
+																																No.x = nox-(widp-widb)/2;
+																																No.y = yesy-(widp-widb)/2;
+																																SDL_RenderClear(rend);
+																																SDL_RenderCopy(rend, texRestart, NULL, &Restart);
+																																SDL_RenderCopy(rend, texYes, NULL, &Yes);
+																																SDL_RenderCopy(rend, texNo, NULL, &No);
+																																SDL_RenderPresent(rend);
+
+																																if (event3.type==SDL_MOUSEBUTTONDOWN) {
+																																								SDL_RenderClear(rend);
+																																								rejouer = 1;
+																																								reponse = 0;
+																																}
+																								}				
+
+																								else {
+																																No.x=nox;
+																																No.y=yesy;
+																																No.w=widb;
+																																No.h=widb;
+																																Yes.x=yesx;
+																																Yes.y=yesy;
+																																Yes.w=widb;
+																																Yes.h=widb;
+
+																																SDL_RenderClear(rend);
+																																SDL_RenderCopy(rend, texRestart, NULL, &Restart);
+																																SDL_RenderCopy(rend, texYes, NULL, &Yes);
+																																SDL_RenderCopy(rend, texNo, NULL, &No);
+																																SDL_RenderPresent(rend);
+																								}
+																}
+																}
+
+								}
+								Quitter(rend,texMenu,texBack,texCircle,texRect,texTriangle,texCarre,texCOMPTEUR,texRobot,texButton,win);
+}
